@@ -3,7 +3,8 @@
 `vaccel_bench` emits raw CSV timestamps from `CLOCK_MONOTONIC`. It performs 100
 unreported warmups and then measures synchronous ioctl round trips and
 asynchronous submit-to-read round trips. `analysis.py` uses only Python's
-standard library to report count, mean, p50, p95, and p99.
+standard library to report count, throughput, mean, p50, p95, and p99 and writes
+a latency-over-iteration SVG beside the CSV.
 
 ```sh
 mkdir -p benchmarks/results
