@@ -1,5 +1,5 @@
 KDIR ?= /lib/modules/$(shell uname -r)/build
-KBUILD_FLAGS ?=
+KBUILD_FLAGS ?= $(if $(shell grep -s '^CONFIG_CC_IS_CLANG=y' $(KDIR)/include/config/auto.conf),LLVM=1)
 
 .PHONY: all build module userspace tests test guest-test bench clean check
 all: build
