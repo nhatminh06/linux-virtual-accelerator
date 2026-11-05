@@ -303,13 +303,12 @@ static int __init vaccel_init(void)
 {
 	int ret;
 
-	ret = misc_register(&vaccel_device);
-	if (ret)
-		return ret;
 	worker = kthread_run(vaccel_worker, NULL, "vaccel-worker");
-	if (IS_ERR(worker)) {
-		ret = PTR_ERR(worker);
-		misc_deregister(&vaccel_device);
+	if (IS_ERR(worker))
+		return PTR_ERR(worker);
+	ret = misc_register(&vaccel_device);
+	if (ret) {
+		kthread_stop(worker);
 		return ret;
 	}
 	pr_info("vaccel: registered /dev/vaccel\n");
