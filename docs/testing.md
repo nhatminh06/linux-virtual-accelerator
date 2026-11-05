@@ -8,14 +8,15 @@ module through kbuild. Runtime testing is guest-only.
 | `test_basic` | positive, negative, zero, signed overflow |
 | `test_async` | nonblocking empty read, multiple IDs/results, poll readiness |
 | `test_concurrent` | four processes, repeated isolated completions |
-| `test_invalid` | unknown ioctl, bad pointer, bad operation, bad read size, close with work |
+| `test_invalid` | bad ioctl/pointer/operation/read size, interrupted blocking read, close with work |
 | `test_saturation` | reserved completion capacity and deterministic `EAGAIN` |
 
-`scripts/test-guest.sh` loads the module, runs all tests, and unloads it even
-after failure. For lifecycle stress, run it repeatedly from a guest shell. Check
-`dmesg` after the run. With a custom guest kernel, enable KASAN, lockdep, and
-debug-list options deliberately in that guest configuration; they are not
-silently enabled by this project.
+The static guest PID 1 performs load/test/unload, delayed saturation testing, 20
+additional load/unload cycles, benchmarks, serial artifact export, and poweroff.
+The 2026-11-04 run produced 26 PASS markers and zero FAIL markers. KASAN, KCSAN,
+UBSAN, lockdep, debug-atomic-sleep, and debug-list were not enabled in the
+installed guest kernel; the serial log contained no kernel BUG, WARNING, Oops,
+or panic during the successful run.
 
 The guest runner reloads the module with the test-only `worker_delay_ms=20`
 parameter for `test_saturation`; normal and benchmark runs use the zero default.

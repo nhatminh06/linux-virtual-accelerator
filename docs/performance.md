@@ -22,3 +22,24 @@ analysis.
 
 QEMU results include virtualization, scheduling, and emulation overhead and are
 not evidence about a physical accelerator or GPU.
+
+## Measured QEMU results
+
+Linux 7.2.11-1-cachyos ran under QEMU 11.1.2 TCG with two Haswell vCPUs and 2
+GiB RAM. Each row is the median summary across three 1,000-command trials;
+latencies are asynchronous end-to-end nanoseconds.
+
+| Queue depth | p50 | p95 | p99 | commands/s |
+|---:|---:|---:|---:|---:|
+| 1 | 35,244 | 46,528 | 77,746 | 23,348 |
+| 8 | 188,360 | 238,267 | 262,876 | 22,569 |
+| 32 | 706,830 | 817,233 | 857,307 | 23,275 |
+| 64 | 1,360,514 | 1,579,516 | 1,623,811 | 23,775 |
+
+Two simultaneous depth-32 clients completed 1,000 asynchronous commands each.
+Their p50/p95/p99 values were 653,366/757,093/790,287 ns and
+837,314/1,249,024/1,338,564 ns. Per-process throughput was 24,580 and 18,469
+commands/s. TCG scheduling explains part of the imbalance.
+
+Raw CSV, summaries, SVGs, and the serial log are in the gitignored
+`benchmarks/results/qemu-7.2.11-2026-11-04/` directory in the validated worktree.

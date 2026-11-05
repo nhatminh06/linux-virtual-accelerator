@@ -22,7 +22,7 @@ its client. The file holds the initial reference. Closing marks the client as
 closing and drops the file reference; queued workers discard results for a
 closed fd and release their references safely.
 
-Initialization registers the device before starting the worker and rolls back
-registration if thread creation fails. Module exit prevents new opens, then
-`kthread_stop` wakes the worker; the worker drains accepted commands before it
-exits.
+Initialization starts the worker before registering the device, so userspace can
+never observe a device without a processor; registration failure stops the idle
+worker. Module exit prevents new opens, then `kthread_stop` wakes the worker; the
+worker drains accepted commands before it exits.

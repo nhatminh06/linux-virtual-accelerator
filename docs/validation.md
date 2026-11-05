@@ -1,20 +1,51 @@
 # Validation record — 2026-11-04
 
-Environment: x86-64 CachyOS host, GCC 16.2.1, Clang 23.1.3, GNU make 4.4.1,
-QEMU 11.1.2, and GDB 18.1. No module was loaded into the host kernel.
+## Environment
 
-| Check | Command | Result |
-|---|---|---|
-| Userspace warnings | `make -C userspace clean all` | PASS |
-| Test compile warnings | `make -C tests clean all` | PASS |
-| Static guest binaries | builds above with `LDFLAGS=-static` | PASS |
-| Linux 7.2 module | `make -C driver KDIR=/usr/lib/modules/7.2.11-1-cachyos/build LLVM=1 clean all` | PASS |
-| Linux 6.18 module | `make -C driver KDIR=/usr/lib/modules/6.18.55-2-cachyos-lts/build clean all` | PASS |
-| Shell syntax | `bash -n scripts/*.sh` | PASS |
-| Analysis syntax | `python3 -m py_compile benchmarks/analysis.py` | PASS |
-| Analysis smoke test | `analysis.py` with two synthetic parser rows | PASS (parser only) |
-| Runtime ABI tests | `make test` | BLOCKED: `/dev/vaccel` absent by design |
-| QEMU integration | `scripts/build-guest.sh` then guest test | BLOCKED: no built guest `bzImage` or static BusyBox installation |
-| Benchmarks | `make bench` in validated guest | NOT RUN |
+- Host: x86-64, 12 logical CPUs, 15 GiB RAM, 178 GiB free workspace storage.
+- Guest: Linux `7.2.11-1-cachyos`; installed `vmlinuz` and exact kbuild tree.
+- Module vermagic: `7.2.11-1-cachyos SMP preempt mod_unload`.
+- QEMU 11.1.2: TCG, i440FX, two Haswell vCPUs, 2 GiB RAM, serial console.
+- Initramfs: static musl 1.2.5 PID 1, clients, tests, and benchmarks.
+- Required config is present: modules/unload, initrd/gzip, devtmpfs, procfs,
+  sysfs, ELF, printk, and 8250 serial console.
 
-The original `linux-kernel-lab` worktree remained clean after implementation.
+The host's static glibc is x86-64-v4 and crashed under TCG at AVX-512 startup.
+The final guest uses baseline musl binaries. QEMU uses `panic=0` and
+`-no-reboot`, so a failed init cannot look like repeated test attempts.
+
+## Evidence
+
+| Check | Command | Result | Evidence |
+|---|---|---|---|
+| Fresh build | `make clean && make build` | PASS | warnings-as-errors programs and kbuild module |
+| Guest package | `GUEST_CC=build/musl/bin/musl-gcc KDIR=... scripts/build-guest.sh` | PASS | matching bzImage/module and static initramfs |
+| QEMU boot | `QEMU_APPEND=ignore_loglevel scripts/run-qemu.sh` | PASS | guest uname marker for 7.2.11 x86-64 |
+| Module/device | guest `finit_module`, `/dev/vaccel` check | PASS | both markers present |
+| ABI tests | five test executables | PASS | 5/5 binaries, all assertions |
+| Lifecycle | initial, delayed, 20-cycle, benchmark loads | PASS | 23 registrations and 23 unloads |
+| Orchestration | all guest checks | PASS | 26 PASS, 0 FAIL, final `failures=0` |
+| Kernel diagnostics | serial scan | PASS | no BUG, WARNING, Oops, panic, or sanitizer report |
+| Benchmarks | 3 trials × 4 depths plus 2 clients | PASS | 14/14 CSV artifacts |
+| Debug kernel | guest `.config` inspection | NOT RUN | KASAN/KCSAN/UBSAN/lockdep debug options disabled |
+| Frozen lab | `git -C ../linux-kernel-lab status --porcelain` | PASS | no changes |
+
+The expected out-of-tree and missing-signature taint messages appear once.
+Signature enforcement is not active, and loading succeeds.
+
+## Reproduction
+
+```sh
+cd /path/to/linux-virtual-accelerator
+GUEST_CC="$(./scripts/build-musl.sh)"
+KDIR=/usr/lib/modules/7.2.11-1-cachyos/build \
+KERNEL_IMAGE=/usr/lib/modules/7.2.11-1-cachyos/vmlinuz \
+GUEST_CC="$GUEST_CC" ./scripts/build-guest.sh
+timeout 180 env QEMU_APPEND=ignore_loglevel ./scripts/run-qemu.sh \
+  > build/guest/qemu.log 2>&1
+./scripts/extract-guest-results.py build/guest/qemu.log \
+  benchmarks/results/qemu-7.2.11-2026-11-04
+```
+
+Run `benchmarks/analysis.py` on each extracted raw CSV. The VM powers itself
+off; no host module or boot configuration is changed.

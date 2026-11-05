@@ -10,5 +10,6 @@
   multi-client contention measurements.
 - No mmap interface is included. Proving page/VMA lifetime would add substantial
   complexity without improving the core queue and ownership lesson.
-- Runtime behavior is unverified until the module is tested in a matching QEMU
-  guest. Loading on the host is explicitly unsupported.
+- The validated distro guest has no KASAN, KCSAN, UBSAN, lockdep,
+  debug-atomic-sleep, or debug-list instrumentation. A custom debug-kernel run
+  remains useful future validation; host loading remains unsupported.

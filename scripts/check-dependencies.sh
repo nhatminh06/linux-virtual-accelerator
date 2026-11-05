@@ -2,7 +2,7 @@
 set -euo pipefail
 
 required=(bash make gcc qemu-system-x86_64 cpio gzip python3)
-optional=(gdb sparse shellcheck)
+optional=(curl gdb sparse shellcheck)
 missing=0
 
 for command in "${required[@]}"; do

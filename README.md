@@ -40,28 +40,30 @@ positive multiple of the 32-byte completion record.
 
 ## QEMU workflow
 
-Provide a built x86 guest kernel and a statically installed BusyBox. The guest
-builder compiles the module against `KDIR`, packages the module and static test
-binaries, and never touches the host kernel.
+Provide a bootable x86 kernel image and its exact build tree. The guest builder
+packages a static PID 1, module, tests, and benchmarks; it never loads anything
+into the host kernel. On x86-64-v4 hosts, use the project-local baseline musl
+toolchain because QEMU TCG cannot execute the host's AVX-512 glibc startup code.
 
 ```sh
-KDIR=/path/to/linux-build BUSYBOX_INSTALL_DIR=/path/to/busybox-install \
-  ./scripts/build-guest.sh
-./scripts/run-qemu.sh
-# guest shell:
-/vaccel/test-guest.sh
+GUEST_CC="$(./scripts/build-musl.sh)"
+KDIR=/path/to/linux-build KERNEL_IMAGE=/path/to/matching/vmlinuz \
+  GUEST_CC="$GUEST_CC" ./scripts/build-guest.sh
+QEMU_APPEND=ignore_loglevel ./scripts/run-qemu.sh > build/guest/qemu.log 2>&1
+./scripts/extract-guest-results.py build/guest/qemu.log benchmarks/results/run
 ```
 
-The source tree/commit, `.config`, compiler, and QEMU command are inputs owned by
-the caller; record them alongside any results. `scripts/run-qemu.sh` accepts
+The static PID 1 runs every test, reloads the module 20 times, benchmarks four
+queue depths and two concurrent clients, emits artifacts over serial, and powers
+off. `scripts/run-qemu.sh` accepts
 `GUEST_BUILD_DIR`, `KERNEL_IMAGE`, `INITRAMFS_IMAGE`, `QEMU_MEMORY`, `QEMU_SMP`,
-and `QEMU_APPEND`.
+`QEMU_CPU`, and `QEMU_APPEND`.
 
 ## Tests and benchmarks
 
 - `make build`: module, userspace programs, and test compile checks.
 - `make test`: runtime tests only when `/dev/vaccel` exists; otherwise BLOCKED.
-- `make guest-test`: load, execute four integration tests, and unload in a guest.
+- `make guest-test`: interactive-guest test helper; the automated init runs all five tests.
 - `make bench`: write raw CSV and print p50/p95/p99 summaries.
 
 The benchmark uses `CLOCK_MONOTONIC`, discards 100 warmups, and reports
@@ -72,9 +74,10 @@ measure this virtual control path, not physical GPU performance.
 
 ## Current validation
 
-Source and host compile results must be recorded from the current environment;
-this repository does not ship fabricated benchmark or runtime results. Guest
-integration is BLOCKED until a matching guest kernel and initramfs are booted.
+The automated QEMU run passed all 26 orchestration checks on Linux
+7.2.11-1-cachyos, including five test binaries, 20 reload cycles, and 14
+benchmark workloads. Raw evidence is under the gitignored
+`benchmarks/results/qemu-7.2.11-2026-11-04/` directory in this worktree.
 See [testing](docs/testing.md), [performance](docs/performance.md), and
 [limitations](docs/limitations.md).
 

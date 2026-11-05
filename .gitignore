@@ -9,6 +9,7 @@ driver/Module.symvers
 driver/modules.order
 userspace/vaccel_client
 userspace/vaccel_bench
+userspace/guest-init
 tests/test_basic
 tests/test_async
 tests/test_concurrent
