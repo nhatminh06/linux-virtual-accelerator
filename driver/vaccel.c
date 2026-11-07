@@ -288,6 +288,9 @@ static const struct file_operations vaccel_fops = {
 	.open = vaccel_open,
 	.release = vaccel_release,
 	.unlocked_ioctl = vaccel_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = compat_ptr_ioctl,
+#endif
 	.read = vaccel_read,
 	.poll = vaccel_poll,
 };

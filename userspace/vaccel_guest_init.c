@@ -74,19 +74,26 @@ static pid_t start_benchmark(const char *output, const char *depth)
 	return child;
 }
 
-static void emit_file(const char *path)
+static int emit_file(const char *path)
 {
 	char buffer[16384];
 	ssize_t bytes;
 	int fd = open(path, O_RDONLY);
 
+	if (fd < 0) {
+		perror(path);
+		return -1;
+	}
 	printf("VACCEL_ARTIFACT_BEGIN %s\n", path);
-	while (fd >= 0 && (bytes = read(fd, buffer, sizeof(buffer))) > 0)
-		if (write(STDOUT_FILENO, buffer, (size_t)bytes) != bytes)
-			break;
-	if (fd >= 0)
-		close(fd);
+	while ((bytes = read(fd, buffer, sizeof(buffer))) > 0) {
+		if (write(STDOUT_FILENO, buffer, (size_t)bytes) != bytes) {
+			close(fd);
+			return -1;
+		}
+	}
+	close(fd);
 	printf("VACCEL_ARTIFACT_END %s\n", path);
+	return bytes < 0 ? -1 : 0;
 }
 
 int main(void)
@@ -130,7 +137,12 @@ int main(void)
 			break;
 	result("load_unload_20", i == 20);
 
-	if (!failures && module_load("") == 0) {
+	if (!failures) {
+		int loaded = module_load("") == 0;
+
+		result("benchmark_module_load", loaded);
+		if (!loaded)
+			goto emit_artifacts;
 		for (trial = 1; trial <= 3; trial++) {
 			for (i = 0; i < (int)(sizeof(depths) / sizeof(depths[0])); i++) {
 				snprintf(output, sizeof(output), "/tmp/depth%s-trial%d.csv", depths[i], trial);
@@ -145,13 +157,17 @@ int main(void)
 		result("benchmark_module_unload", module_unload() == 0);
 	}
 
+emit_artifacts:
 	for (trial = 1; trial <= 3; trial++)
 		for (i = 0; i < (int)(sizeof(depths) / sizeof(depths[0])); i++) {
 			snprintf(output, sizeof(output), "/tmp/depth%s-trial%d.csv", depths[i], trial);
-			emit_file(output);
+			if (emit_file(output))
+				failures++;
 		}
-	emit_file("/tmp/multiclient-1.csv");
-	emit_file("/tmp/multiclient-2.csv");
+	if (emit_file("/tmp/multiclient-1.csv"))
+		failures++;
+	if (emit_file("/tmp/multiclient-2.csv"))
+		failures++;
 	printf("VACCEL_FINAL %s failures=%d\n", failures ? "FAIL" : "PASS", failures);
 	sync();
 	reboot(RB_POWER_OFF);

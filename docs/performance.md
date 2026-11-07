@@ -43,3 +43,10 @@ commands/s. TCG scheduling explains part of the imbalance.
 
 Raw CSV, summaries, SVGs, and the serial log are in the gitignored
 `benchmarks/results/qemu-7.2.11-2026-11-04/` directory in the validated worktree.
+
+The 2026-11-07 audit reran the identical 14 workloads after changes outside the
+driver's command hot path. Median async throughput across queue depths was
+12,999–19,167 commands/s, lower and noisier than the earlier 22,569–23,775
+commands/s range. A single paired TCG run cannot distinguish host scheduling
+noise from a regression, so no performance conclusion is claimed. Its raw data
+is preserved separately under `benchmarks/results/audit-qemu-7.2.11-2026-11-07/`.

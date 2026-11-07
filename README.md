@@ -50,6 +50,7 @@ GUEST_CC="$(./scripts/build-musl.sh)"
 KDIR=/path/to/linux-build KERNEL_IMAGE=/path/to/matching/vmlinuz \
   GUEST_CC="$GUEST_CC" ./scripts/build-guest.sh
 QEMU_APPEND=ignore_loglevel ./scripts/run-qemu.sh > build/guest/qemu.log 2>&1
+./scripts/validate-guest-log.sh build/guest/qemu.log
 ./scripts/extract-guest-results.py build/guest/qemu.log benchmarks/results/run
 ```
 
@@ -74,10 +75,10 @@ measure this virtual control path, not physical GPU performance.
 
 ## Current validation
 
-The automated QEMU run passed all 26 orchestration checks on Linux
+The independently audited QEMU run passed all 27 orchestration checks on Linux
 7.2.11-1-cachyos, including five test binaries, 20 reload cycles, and 14
 benchmark workloads. Raw evidence is under the gitignored
-`benchmarks/results/qemu-7.2.11-2026-11-04/` directory in this worktree.
+`benchmarks/results/audit-qemu-7.2.11-2026-11-07/` directory in this worktree.
 See [testing](docs/testing.md), [performance](docs/performance.md), and
 [limitations](docs/limitations.md).
 
@@ -87,6 +88,7 @@ See [testing](docs/testing.md), [performance](docs/performance.md), and
 - [Concurrency and ownership](docs/concurrency.md)
 - [Testing](docs/testing.md)
 - [Validation record](docs/validation.md)
+- [Independent audit](docs/audit-summary.md)
 - [Performance](docs/performance.md)
 - [Limitations](docs/limitations.md)
 - [Learning guide](docs/learning-guide.md)

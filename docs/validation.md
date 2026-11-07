@@ -43,9 +43,21 @@ KERNEL_IMAGE=/usr/lib/modules/7.2.11-1-cachyos/vmlinuz \
 GUEST_CC="$GUEST_CC" ./scripts/build-guest.sh
 timeout 180 env QEMU_APPEND=ignore_loglevel ./scripts/run-qemu.sh \
   > build/guest/qemu.log 2>&1
+./scripts/validate-guest-log.sh build/guest/qemu.log
 ./scripts/extract-guest-results.py build/guest/qemu.log \
   benchmarks/results/qemu-7.2.11-2026-11-04
 ```
 
 Run `benchmarks/analysis.py` on each extracted raw CSV. The VM powers itself
 off; no host module or boot configuration is changed.
+
+## Independent audit — 2026-11-07
+
+The audit fixed a guest-harness false-pass path, enabled the standard compat
+ioctl forwarder, and strengthened concurrency/lifetime tests. The rerun produced
+27 PASS markers, zero FAIL markers, 23 registrations/unloads, 14 complete
+artifacts, and `VACCEL_FINAL PASS failures=0`. The log validator also correctly
+rejects the older log because it lacks explicit benchmark-module-load evidence.
+
+Evidence: `benchmarks/results/audit-qemu-7.2.11-2026-11-07/`. The original
+2026-11-04 benchmark directory was preserved unchanged.

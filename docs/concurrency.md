@@ -22,3 +22,19 @@ After a close with pending work, client `kref`s prevent use-after-free. During
 unload, the worker drains the FIFO before stopping. The ID counter is global and
 monotonic for one module load; wraparound after 2^64 accepted submissions is an
 explicit practical limitation.
+
+## Verified invariants
+
+1. The file owns one client reference; each accepted command owns one more.
+2. The submit path transfers an allocated command to the FIFO only after taking
+   its client reference and reserving one completion.
+3. The worker is the only command destructor and drops exactly one client
+   reference after publishing or cancelling the completion.
+4. Closing marks the client first. Later worker completions follow the documented
+   cancellation policy: decrement the reservation and publish nothing.
+5. `outstanding` equals queued commands plus running commands plus unread
+   completions. It never exceeds the 64-record completion ring.
+6. The only nested order is client mutex then command spinlock. The worker drops
+   the spinlock before taking a client mutex, so no reverse order exists.
+7. Poll registers the wait queue before checking `count`; read checks the same
+   `count` condition, so readiness and consumption agree without a lost wakeup.
