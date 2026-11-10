@@ -50,3 +50,18 @@ driver's command hot path. Median async throughput across queue depths was
 commands/s range. A single paired TCG run cannot distinguish host scheduling
 noise from a regression, so no performance conclusion is claimed. Its raw data
 is preserved separately under `benchmarks/results/audit-qemu-7.2.11-2026-11-07/`.
+
+The 2026-11-09 final qualification repeated the same 14 workloads. Median
+asynchronous summaries across three trials were:
+
+| Queue depth | p50 | p95 | p99 | commands/s |
+|---:|---:|---:|---:|---:|
+| 1 | 37,263 | 75,909 | 113,987 | 20,232 |
+| 8 | 189,783 | 254,293 | 279,714 | 22,649 |
+| 32 | 715,153 | 834,706 | 854,316 | 22,931 |
+| 64 | 1,404,908 | 1,627,330 | 1,662,379 | 23,060 |
+
+Two simultaneous depth-32 clients reported p50/p95/p99 values of
+650,248/815,651/874,978 ns and 814,362/1,355,169/1,415,890 ns. These QEMU
+TCG measurements are validation evidence, not NVIDIA GPU performance, and are
+not treated as a speedup or regression against earlier runs.

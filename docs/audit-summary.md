@@ -45,3 +45,11 @@ local and the existing runtime run is clean; no large download was started.
 No driver use-after-free, double-free, leaked accepted command, lost wakeup,
 completion crossover, reverse lock order, sleep under spinlock, or queue-bound
 violation was found. No public ABI layout or command number changed.
+
+## Final update — 2026-11-09
+
+The prior 32-bit runtime gap is closed. A static ELF32 i386 musl test ran on the
+64-bit `CONFIG_COMPAT` guest and passed both ioctls, ABI layout checks, invalid
+commands, and overflow behavior. Forced allocation/thread-creation failures and
+KASAN/KCSAN/UBSAN/lockdep remain untested. The installed kernel did run the
+suite with KFENCE and SLUB debugging enabled.

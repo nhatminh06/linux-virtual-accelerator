@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y gcc-multilib linux-headers-generic shellcheck
+      - name: Build module, programs, and native tests
+        run: |
+          headers="$(find /usr/src -maxdepth 1 -type d -name 'linux-headers-*-generic' | sort -V | tail -1)"
+          test -n "$headers"
+          make build KDIR="$headers"
+      - name: Compile-check the 32-bit ABI test
+        run: |
+          make -C tests compat32
+          file tests/test_compat32 | grep -q 'ELF 32-bit'
+      - name: Check scripts
+        run: |
+          shellcheck scripts/*.sh
+          python3 -m py_compile benchmarks/analysis.py scripts/extract-guest-results.py

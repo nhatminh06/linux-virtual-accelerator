@@ -17,7 +17,7 @@ runtime measurement.
 | 4 | Asynchronous pipeline | `vaccel_submit`, `vaccel_worker` | Explain the FIFO, worker, completion publication, and request IDs. |
 | 5 | Ownership and concurrency | client/command structures, locks, krefs | Prove why close and unload do not free live state. |
 | 6 | Readiness and errors | `vaccel_read`, `vaccel_poll`, invalid/async tests | Explain blocking, nonblocking, poll, wakeups, and interruption. |
-| 7 | Validation system | five tests and guest PID 1 | Map claims to tests and distinguish source review from runtime evidence. |
+| 7 | Validation system | six tests and guest PID 1 | Map claims to tests and distinguish source review from runtime evidence. |
 | 8 | Performance and interviews | `vaccel_bench.c`, `analysis.py`, questions below | Explain measured latency/throughput and practice systems interviews. |
 
 ---
@@ -57,13 +57,14 @@ not source files.
 
 | File | Purpose |
 |---|---|
-| `tests/Makefile` | Builds and runs the five black-box test executables. |
+| `tests/Makefile` | Builds five native tests plus the 32-bit compat test. |
 | `tests/test_common.h` | Shared `CHECK` assertion and `/dev/vaccel` open helper. |
 | `tests/test_basic.c` | Synchronous results and signed-overflow behavior. |
 | `tests/test_async.c` | Nonblocking empty reads, submissions, poll readiness, IDs, and results. |
 | `tests/test_concurrent.c` | Four clients with multiple outstanding requests, poll, ordering, and isolation. |
 | `tests/test_invalid.c` | Unsupported ioctl, bad pointer/operation/read size, close with work, and interrupted blocking read. |
 | `tests/test_saturation.c` | Per-client capacity, `EAGAIN`, recovery, and closing with 64 outstanding commands. |
+| `tests/test_compat32.c` | Static i386 ABI layouts, compat ioctls, invalid commands, and overflow. |
 
 ### Guest, build, and evidence scripts
 
@@ -218,8 +219,8 @@ count that is a multiple of 32.
   (`vaccel.c:219-228`).
 - When the kernel has `CONFIG_COMPAT`, `compat_ptr_ioctl` forwards 32-bit user
   pointers to the same native handler (`vaccel.c:286-296`).
-- **Observed validation limit:** this compat path compiles but has not been run
-  with a 32-bit guest program.
+- **Runtime-validated after the original packet:** a static i386 client exercised
+  both ioctls on the 64-bit `CONFIG_COMPAT` guest on 2026-11-09.
 
 ---
 
@@ -538,6 +539,7 @@ in read, and verifies `EINTR`.
 | `test_concurrent` | Four processes/open files; each repeatedly holds eight outstanding commands; poll under contention; FIFO order per client; correct IDs/results; no cross-client completions. |
 | `test_invalid` | Unknown ioctl → `ENOTTY`; bad pointer → `EFAULT`; bad async operation → `EINVAL`; one-byte read → `EINVAL`; close after accepted work; signal-interrupted blocking read → `EINTR`. |
 | `test_saturation` | Exactly 64 outstanding commands accepted; 65th returns `EAGAIN`; all 64 complete correctly; submit/read works again after draining; separate client closes with 64 delayed outstanding commands. |
+| `test_compat32` | ELF32 execution on the x86-64 guest; exact UAPI sizes/offsets; sync/async compat ioctls; unknown command; synchronous and asynchronous overflow. |
 
 The static guest PID 1 adds integration coverage: module/device creation,
 ordinary and delayed module load/unload, 20 repeated lifecycle cycles, benchmark
@@ -545,6 +547,8 @@ module lifecycle, 14 benchmark artifacts, serial evidence, and poweroff.
 
 **Observed result:** the 2026-11-07 audited run produced 27 PASS markers, zero
 FAIL markers, 23 registrations/unloads, 14 artifacts, and clean poweroff.
+The 2026-11-09 final run added `test_compat32` and produced 28 PASS markers
+with the same lifecycle and artifact counts.
 
 ---
 
@@ -657,8 +661,8 @@ computes mean, p50, p95, p99, time-window throughput, and an SVG.
 
 ### Validation limits
 
-- The 32-bit compat ioctl forwarder is compile-verified and source-reviewed but
-  has not been executed by a 32-bit guest program.
+- The 32-bit compat ioctl forwarder is runtime-tested with a static i386 client
+  on the x86-64 guest; other compat architectures remain untested.
 - The installed guest kernel did not enable KASAN, KCSAN, UBSAN, lockdep,
   debug-atomic-sleep, debug-list, or kmemleak.
 - Allocation failure and forced `kthread_run`/`misc_register` failure paths were

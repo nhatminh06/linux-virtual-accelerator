@@ -10,6 +10,7 @@ module through kbuild. Runtime testing is guest-only.
 | `test_concurrent` | four processes, eight outstanding requests each, poll and isolation |
 | `test_invalid` | bad ioctl/pointer/operation/read size, interrupted blocking read, close with work |
 | `test_saturation` | deterministic `EAGAIN`, recovery, close with 64 pending requests |
+| `test_compat32` | 32-bit layouts, sync/async compat ioctls, invalid commands, and overflow on a 64-bit kernel |
 
 The static guest PID 1 performs load/test/unload, delayed saturation testing, 20
 additional load/unload cycles, benchmarks, serial artifact export, and poweroff.
@@ -22,3 +23,8 @@ The guest runner reloads the module with the test-only `worker_delay_ms=20`
 parameter for `test_saturation`; normal and benchmark runs use the zero default.
 `scripts/validate-guest-log.sh` rejects missing benchmark-module-load evidence,
 missing artifacts, guest failures, kernel diagnostics, and incomplete shutdown.
+
+The 2026-11-09 final run added a static i386 musl test. The 64-bit guest had
+`CONFIG_COMPAT=y` and `CONFIG_IA32_EMULATION=y`; the binary was verified as
+ELF32 before boot and passed both ioctl paths at runtime. All 28 orchestration
+markers passed, including the prior five native tests and lifecycle coverage.

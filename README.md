@@ -47,14 +47,15 @@ toolchain because QEMU TCG cannot execute the host's AVX-512 glibc startup code.
 
 ```sh
 GUEST_CC="$(./scripts/build-musl.sh)"
+COMPAT_CC="$(MUSL_ARCH=i386 ./scripts/build-musl.sh)"
 KDIR=/path/to/linux-build KERNEL_IMAGE=/path/to/matching/vmlinuz \
-  GUEST_CC="$GUEST_CC" ./scripts/build-guest.sh
+  GUEST_CC="$GUEST_CC" COMPAT_CC="$COMPAT_CC" ./scripts/build-guest.sh
 QEMU_APPEND=ignore_loglevel ./scripts/run-qemu.sh > build/guest/qemu.log 2>&1
 ./scripts/validate-guest-log.sh build/guest/qemu.log
 ./scripts/extract-guest-results.py build/guest/qemu.log benchmarks/results/run
 ```
 
-The static PID 1 runs every test, reloads the module 20 times, benchmarks four
+The static PID 1 runs all six native/compat tests, reloads the module 20 times, benchmarks four
 queue depths and two concurrent clients, emits artifacts over serial, and powers
 off. `scripts/run-qemu.sh` accepts
 `GUEST_BUILD_DIR`, `KERNEL_IMAGE`, `INITRAMFS_IMAGE`, `QEMU_MEMORY`, `QEMU_SMP`,
@@ -64,7 +65,7 @@ off. `scripts/run-qemu.sh` accepts
 
 - `make build`: module, userspace programs, and test compile checks.
 - `make test`: runtime tests only when `/dev/vaccel` exists; otherwise BLOCKED.
-- `make guest-test`: interactive-guest test helper; the automated init runs all five tests.
+- `make guest-test`: interactive-guest test helper; the automated init runs all six tests.
 - `make bench`: write raw CSV and print p50/p95/p99 summaries.
 
 The benchmark uses `CLOCK_MONOTONIC`, discards 100 warmups, and reports
@@ -75,10 +76,10 @@ measure this virtual control path, not physical GPU performance.
 
 ## Current validation
 
-The independently audited QEMU run passed all 27 orchestration checks on Linux
-7.2.11-1-cachyos, including five test binaries, 20 reload cycles, and 14
-benchmark workloads. Raw evidence is under the gitignored
-`benchmarks/results/audit-qemu-7.2.11-2026-11-07/` directory in this worktree.
+The final QEMU run passed all 28 orchestration checks on Linux
+7.2.11-1-cachyos, including five native tests, one static 32-bit compat test,
+20 reload cycles, and 14 benchmark workloads. Raw evidence is under the
+gitignored `benchmarks/results/release-qemu-7.2.11-2026-11-09/` directory in this worktree.
 See [testing](docs/testing.md), [performance](docs/performance.md), and
 [limitations](docs/limitations.md).
 

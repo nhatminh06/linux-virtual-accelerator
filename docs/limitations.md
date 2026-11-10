@@ -13,3 +13,5 @@
 - The validated distro guest has no KASAN, KCSAN, UBSAN, lockdep,
   debug-atomic-sleep, or debug-list instrumentation. A custom debug-kernel run
   remains useful future validation; host loading remains unsupported.
+- The 32-bit compat path is runtime-tested on x86 only; other compat
+  architectures are outside this project's validation scope.

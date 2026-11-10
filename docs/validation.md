@@ -38,9 +38,10 @@ Signature enforcement is not active, and loading succeeds.
 ```sh
 cd /path/to/linux-virtual-accelerator
 GUEST_CC="$(./scripts/build-musl.sh)"
+COMPAT_CC="$(MUSL_ARCH=i386 ./scripts/build-musl.sh)"
 KDIR=/usr/lib/modules/7.2.11-1-cachyos/build \
 KERNEL_IMAGE=/usr/lib/modules/7.2.11-1-cachyos/vmlinuz \
-GUEST_CC="$GUEST_CC" ./scripts/build-guest.sh
+GUEST_CC="$GUEST_CC" COMPAT_CC="$COMPAT_CC" ./scripts/build-guest.sh
 timeout 180 env QEMU_APPEND=ignore_loglevel ./scripts/run-qemu.sh \
   > build/guest/qemu.log 2>&1
 ./scripts/validate-guest-log.sh build/guest/qemu.log
@@ -61,3 +62,16 @@ rejects the older log because it lacks explicit benchmark-module-load evidence.
 
 Evidence: `benchmarks/results/audit-qemu-7.2.11-2026-11-07/`. The original
 2026-11-04 benchmark directory was preserved unchanged.
+
+## Final qualification — 2026-11-09
+
+The installed guest configuration has `CONFIG_COMPAT=y` and
+`CONFIG_IA32_EMULATION=y`. A static i386 musl test verified 12/24/32-byte UAPI
+layouts, synchronous and asynchronous ioctls, invalid commands, and signed
+overflow while running on the 64-bit guest. The complete rerun produced 28
+PASS markers, zero FAIL markers, 23 registrations/unloads, 14 benchmark
+artifacts, `VACCEL_FINAL PASS failures=0`, and a clean poweroff. The serial log
+contained no BUG, WARNING, Oops, panic, or sanitizer report.
+
+Evidence: `build/guest/qemu-release-2026-11-09.log` and
+`benchmarks/results/release-qemu-7.2.11-2026-11-09/` (both gitignored).
