@@ -15,5 +15,6 @@ tests/test_async
 tests/test_concurrent
 tests/test_invalid
 tests/test_saturation
+tests/test_compat32
 *.o
 __pycache__/

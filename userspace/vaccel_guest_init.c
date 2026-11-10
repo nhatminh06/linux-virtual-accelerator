@@ -98,7 +98,10 @@ static int emit_file(const char *path)
 
 int main(void)
 {
-	static const char *tests[] = { "test_basic", "test_async", "test_concurrent", "test_invalid" };
+	static const char *tests[] = {
+		"test_basic", "test_async", "test_concurrent", "test_invalid",
+		"test_compat32",
+	};
 	static const char *depths[] = { "1", "8", "32", "64" };
 	struct utsname uts;
 	char path[128], output[128];
