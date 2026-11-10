@@ -2,6 +2,7 @@
 set -euo pipefail
 
 log="${1:?usage: $0 QEMU_LOG}"
+grep -q 'VACCEL_RESULT test_compat32 PASS' "${log}"
 grep -q 'VACCEL_RESULT benchmark_module_load PASS' "${log}"
 grep -q 'VACCEL_FINAL PASS failures=0' "${log}"
 ! grep -q 'VACCEL_RESULT .* FAIL' "${log}"
