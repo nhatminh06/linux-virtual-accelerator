@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -eu
 
-dir="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd || pwd)"
+if ! dir="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)"; then
+	dir="$(pwd)"
+fi
 if [ -d /vaccel ]; then dir=/vaccel; fi
 module="${VACCEL_MODULE:-${dir}/driver/vaccel.ko}"
 [ -f "${module}" ] || module="${dir}/vaccel.ko"
