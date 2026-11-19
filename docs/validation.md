@@ -75,3 +75,12 @@ contained no BUG, WARNING, Oops, panic, or sanitizer report.
 
 Evidence: `build/guest/qemu-release-2026-11-09.log` and
 `benchmarks/results/release-qemu-7.2.11-2026-11-09/` (both gitignored).
+
+## Publication cleanup qualification — 2026-11-18
+
+After adding the driver's dual-license metadata and strengthening serial-log
+validation, the module and guest were rebuilt against the same kernel and the
+complete QEMU workflow was rerun. The new log passed the stricter validator:
+28 expected PASS markers, zero FAIL markers, 23 registrations/unloads, 14
+complete benchmark artifacts, and clean poweroff. The ignored local evidence is
+`build/guest/qemu-publication-2026-11-18.log`; no driver behavior or UAPI changed.

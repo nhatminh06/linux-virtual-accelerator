@@ -2,7 +2,7 @@
 
 Scope: driver/UAPI, five tests, guest PID 1, build/QEMU/result scripts,
 ownership documentation, prior serial evidence, and benchmark artifacts at
-commit `3c70ca8`.
+commit `e74d6f776e6b1e977eaa4932dd63644979cf49b6`.
 
 ## Findings
 

@@ -80,6 +80,9 @@ The final QEMU run passed all 28 orchestration checks on Linux
 7.2.11-1-cachyos, including five native tests, one static 32-bit compat test,
 20 reload cycles, and 14 benchmark workloads. Raw evidence is under the
 gitignored `benchmarks/results/release-qemu-7.2.11-2026-11-09/` directory in this worktree.
+The licensing-metadata cleanup was requalified with the same 28 checks on
+2026-11-18; its serial log is also retained locally under the gitignored
+`build/guest/` directory.
 See [testing](docs/testing.md), [performance](docs/performance.md), and
 [limitations](docs/limitations.md).
 
@@ -93,3 +96,10 @@ See [testing](docs/testing.md), [performance](docs/performance.md), and
 - [Performance](docs/performance.md)
 - [Limitations](docs/limitations.md)
 - [Learning guide](docs/learning-guide.md)
+
+## License
+
+The repository is licensed under the [MIT License](LICENSE), except
+`driver/vaccel.c`, which is dual-licensed under your choice of MIT or
+GPL-2.0-only. Its `MODULE_LICENSE("Dual MIT/GPL")` metadata reports that choice
+to the Linux module loader; the SPDX identifier in the source is authoritative.

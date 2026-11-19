@@ -21,8 +21,11 @@ or panic during the successful run.
 
 The guest runner reloads the module with the test-only `worker_delay_ms=20`
 parameter for `test_saturation`; normal and benchmark runs use the zero default.
-`scripts/validate-guest-log.sh` rejects missing benchmark-module-load evidence,
-missing artifacts, guest failures, kernel diagnostics, and incomplete shutdown.
+`scripts/validate-guest-log.sh` requires the exact 28-result marker set emitted
+by the guest harness, including 12 benchmark markers, and rejects missing or
+duplicate results, missing artifacts, guest failures, kernel diagnostics, and
+incomplete shutdown. `tests/test_validate_guest_log.sh` checks those failure
+cases against a copy of the qualified log.
 
 The 2026-11-09 final run added a static i386 musl test. The 64-bit guest had
 `CONFIG_COMPAT=y` and `CONFIG_IA32_EMULATION=y`; the binary was verified as

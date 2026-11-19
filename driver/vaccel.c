@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR GPL-2.0-only
 #include <linux/kref.h>
 #include <linux/kthread.h>
 #include <linux/miscdevice.h>
@@ -327,6 +328,6 @@ static void __exit vaccel_exit(void)
 
 module_init(vaccel_init);
 module_exit(vaccel_exit);
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("Dual MIT/GPL");
 MODULE_AUTHOR("linux-virtual-accelerator contributors");
 MODULE_DESCRIPTION("Educational software-only virtual accelerator");

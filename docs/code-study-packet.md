@@ -1,6 +1,6 @@
 # Linux Virtual Accelerator: Code Study Packet
 
-Repository baseline: `2c5bf4a47f659a1312a8ffa6ab30f7c57bb9d9af`
+Repository baseline: `622036824f91529a4cc73016a30e6ed9470aa41e`
 
 This packet is derived from the source at that commit. Statements labeled
 **Observed** describe code or recorded results. Statements labeled **Inferred**
@@ -226,7 +226,7 @@ count that is a multiple of 32.
 
 ## 3. Driver function map
 
-Line references are for baseline commit `2c5bf4a`.
+Line references are for baseline commit `6220368`.
 
 | Lines | Symbol | Role |
 |---:|---|---|
